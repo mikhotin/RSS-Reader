@@ -1,6 +1,9 @@
 dev:
 	npx webpack-dev-server
 
+build:
+	npm run build
+
 install:
 	npm install
 
