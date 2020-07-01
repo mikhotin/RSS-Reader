@@ -1,0 +1,46 @@
+{
+  "name": "rrs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webpack": "npx webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexanderGJJ/frontend-project-lvl3.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexanderGJJ/frontend-project-lvl3/issues"
+  },
+  "homepage": "https://github.com/AlexanderGJJ/frontend-project-lvl3#readme",
+  "dependencies": {
+    "bootstrap": "^4.5.0",
+    "jquery": "^3.5.1",
+    "popper.js": "^1.16.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/preset-env": "^7.10.3",
+    "babel-eslint": "^10.1.0",
+    "babel-jest": "^26.1.0",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.6.0",
+    "debug": "^4.1.1",
+    "eslint": "^7.3.1",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jest": "^23.17.1",
+    "html-webpack-plugin": "^4.3.0",
+    "jest": "^26.1.0",
+    "jest-cli": "^26.1.0",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  }
+}
