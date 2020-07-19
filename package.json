@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx webpack  --mode=production",
     "dev": "npx webpack  --mode=development",
-    "server": "npx webpack-dev-server"
+    "server": "npx webpack-dev-server --mode development --open"
   },
   "repository": {
     "type": "git",
@@ -19,9 +19,13 @@
   },
   "homepage": "https://github.com/AlexanderGJJ/frontend-project-lvl3#readme",
   "dependencies": {
+    "axios": "^0.19.2",
     "bootstrap": "^4.5.0",
     "jquery": "^3.5.1",
-    "popper.js": "^1.16.1"
+    "popper.js": "^1.16.1",
+    "yup": "^0.29.1",
+    "lodash": "^4.17.15",
+    "on-change": "^2.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.10.3",
