@@ -1,6 +1,5 @@
 import onChange from 'on-change';
 import _ from 'lodash';
-import parse from './parser';
 import state from './state';
 
 const elements = {
@@ -23,14 +22,9 @@ const renderError = (data) => {
 };
 
 const renderFeed = (data) => {
-  const { responce } = data;
-  const feed = parse(responce.data);
-  const dataChannel = feed.body.querySelector('channel');
-  const dataTitle = dataChannel.querySelector('title');
-  const dataPosts = [...dataChannel.querySelectorAll('item')];
-
+  const dataPosts = data.items;
   const feedTitle = document.createElement('h2');
-  feedTitle.textContent = dataTitle.textContent;
+  feedTitle.textContent = data.title;
   const postsList = document.createElement('ul');
   postsList.innerHTML = dataPosts.map((item) => {
     const itemTitle = item.querySelector('title');
@@ -59,13 +53,12 @@ const renderFeed = (data) => {
 };
 
 const watchedState = onChange(state, (path, value) => {
-  console.log(path, value);
   switch (path) {
     case 'form.errors':
       renderError(value);
       break;
-    case 'feeds':
-      renderFeed(watchedState.feeds[watchedState.feeds.length - 1]);
+    case 'posts':
+      renderFeed(state.posts[state.posts.length - 1]);
       break;
     default:
       break;
