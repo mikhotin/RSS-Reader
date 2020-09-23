@@ -1,37 +1,13 @@
 import onChange from 'on-change';
-import _ from 'lodash';
-import state from './state';
 
-const elements = {
-  container: document.querySelector('main'),
-  input: document.querySelector('input'),
-  btn: document.querySelector('button'),
-  feedback: document.querySelector('.feedback'),
-};
+const renderFeed = (feed, elements) => {
+  const { feedTitle, posts } = feed[feed.length - 1];
+  const title = document.createElement('h2');
+  title.textContent = feedTitle;
 
-const renderError = (data) => {
-  if (_.isEqual(data, {})) {
-    elements.input.classList.remove('is-invalid');
-    elements.feedback.classList.remove('text-danger');
-    elements.feedback.textContent = '';
-  } else {
-    elements.input.classList.add('is-invalid');
-    elements.feedback.classList.add('text-danger');
-    elements.feedback.textContent = data;
-  }
-};
-
-const renderFeed = (data) => {
-  const dataPosts = data.items;
-  const feedTitle = document.createElement('h2');
-  feedTitle.textContent = data.title;
   const postsList = document.createElement('ul');
-  postsList.innerHTML = dataPosts.map((item) => {
-    const itemTitle = item.querySelector('title');
-    const itemLink = item.querySelector('link');
-    const href = itemLink.nextSibling.textContent.trim();
-    return `<li><a href="${href}">${itemTitle.textContent}</a></li>`;
-  }).join('\n');
+  postsList.innerHTML = posts.map(({ postTitle, postLink }) => `<li><a href="${postLink}">${postTitle}</a></li>`)
+    .join('\n');
 
   const feedContainer = document.createElement('div');
   feedContainer.classList.add('container-xl');
@@ -39,30 +15,70 @@ const renderFeed = (data) => {
   row.classList.add('row');
   const feedList = document.createElement('div');
   feedList.classList.add('feeds', 'col-md-10', 'col-lg-8', 'mx-auto');
-  feedList.appendChild(feedTitle);
+  feedList.appendChild(title);
   feedList.appendChild(postsList);
   row.appendChild(feedList);
   feedContainer.appendChild(row);
 
   elements.container.appendChild(feedContainer);
-  elements.input.classList.remove('is-invalid');
-  elements.feedback.classList.remove('text-danger');
-  elements.feedback.classList.add('text-success');
-  elements.feedback.innerHTML = 'Rss has been loaded';
-  elements.input.value = '';
 };
 
-const watchedState = onChange(state, (path, value) => {
-  switch (path) {
-    case 'form.errors':
-      renderError(value);
+const renderForm = (form, elements) => {
+  switch (form.status) {
+    case 'success':
+      elements.input.value = ''; // no-param-reassign
+      elements.btn.removeAttribute('disabled');
       break;
-    case 'posts':
-      renderFeed(state.posts[state.posts.length - 1]);
+    case 'loading':
+      elements.btn.setAttribute('disabled', true);
+      break;
+    case 'failed':
+      elements.btn.removeAttribute('disabled');
       break;
     default:
-      break;
+      throw Error(`Unknown form status: ${form.status}`);
   }
-});
+};
 
-export default watchedState;
+const renderAppError = (err) => {
+  console.log(err);
+};
+
+const renderFormError = (form, elements) => {
+  elements.input.focus();
+  const error = document.querySelector('.text-danger');
+  if (error) {
+    error.classList.remove('text-danger');
+    error.textContent = '';
+    elements.input.classList.remove('is-invalid');
+  }
+
+  if (form.field.url.valid) {
+    elements.feedback.classList.add('text-success');
+    elements.feedback.textContent = 'Rss has been loaded'; // // no-param-reassign
+  } else {
+    elements.input.classList.add('is-invalid');
+    elements.feedback.classList.add('text-danger');
+    elements.feedback.textContent = form.field.url.error; // // no-param-reassign
+  }
+};
+
+const initView = (state, elements) => {
+  const mapping = {
+    'form.status': () => renderForm(state.form, elements),
+    'form.field.url': () => renderFormError(state.form, elements),
+    posts: () => renderFeed(state.posts, elements),
+    error: () => renderAppError(state.error, elements),
+  };
+
+  const watchedState = onChange(state, (path, value) => {
+    console.log(path, value);
+    if (mapping[path]) {
+      mapping[path]();
+    }
+  });
+
+  return watchedState;
+};
+
+export default initView;
