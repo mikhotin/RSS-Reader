@@ -4,23 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import * as yup from 'yup';
 import _ from 'lodash';
 import axios from 'axios';
-import i18next from 'i18next';
-import { ru, en } from './locales';
 import initView from './view';
 import parse from './parser';
-
-i18next.init({
-  lng: 'en',
-  debug: true,
-  resources: {
-    ru,
-    en,
-  },
-}, () => {
-  document.querySelector('.lead').innerHTML = i18next.t('lead');
-  document.querySelector('button').innerHTML = i18next.t('btn');
-  document.querySelector('.example').innerHTML = i18next.t('example');
-});
 
 let timerUpdateFeeds;
 const validate = (field) => {
@@ -108,7 +93,7 @@ const app = () => {
       if (loadedFeed) {
         watched.form.field.url = {
           valid: false,
-          error: 'already loaded',
+          error: 'loaded',
         };
         return;
       }

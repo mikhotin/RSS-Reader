@@ -1,4 +1,11 @@
 import onChange from 'on-change';
+import i18next from 'i18next';
+import initLang from './locales';
+
+initLang();
+document.querySelector('.example').textContent = i18next.t('example');
+document.querySelector('button').textContent = i18next.t('btn');
+document.querySelector('.lead').textContent = i18next.t('text');
 
 const renderFeed = (feed, elements) => {
   const { feedTitle, posts } = feed[feed.length - 1];
@@ -41,7 +48,12 @@ const renderForm = (form, elements) => {
 };
 
 const renderAppError = (err) => {
-  console.log(err);
+  if (err === null) {
+    return;
+  }
+  const error = document.querySelector('.feedback');
+  error.classList.add('text-danger');
+  error.textContent = err;
 };
 
 const renderFormError = (form, elements) => {
@@ -55,11 +67,11 @@ const renderFormError = (form, elements) => {
 
   if (form.field.url.valid) {
     elements.feedback.classList.add('text-success');
-    elements.feedback.textContent = 'Rss has been loaded'; // // no-param-reassign
+    elements.feedback.textContent = i18next.t('success');
   } else {
     elements.input.classList.add('is-invalid');
     elements.feedback.classList.add('text-danger');
-    elements.feedback.textContent = form.field.url.error; // // no-param-reassign
+    elements.feedback.textContent = form.field.url.error === 'loaded' ? i18next.t('error') : form.field.url.error;
   }
 };
 
