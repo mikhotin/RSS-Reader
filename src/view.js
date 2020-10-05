@@ -1,14 +1,8 @@
 import onChange from 'on-change';
 import i18next from 'i18next';
-import initLang from './locales';
 
-initLang();
-document.querySelector('.example').textContent = i18next.t('example');
-document.querySelector('button').textContent = i18next.t('btn');
-document.querySelector('.lead').textContent = i18next.t('text');
-
-const renderFeed = (feed, elements) => {
-  const { feedTitle, posts } = feed[feed.length - 1];
+const renderFeed = (feedPosts, elements) => {
+  const { feedTitle, posts } = feedPosts[feedPosts.length - 1];
   const title = document.createElement('h2');
   title.textContent = feedTitle;
 
@@ -33,7 +27,7 @@ const renderFeed = (feed, elements) => {
 const renderForm = (form, elements) => {
   switch (form.status) {
     case 'success':
-      elements.input.value = ''; // no-param-reassign
+      elements.input.value = '';
       elements.btn.removeAttribute('disabled');
       break;
     case 'loading':
@@ -47,7 +41,7 @@ const renderForm = (form, elements) => {
   }
 };
 
-const renderAppError = (err) => {
+const renderFormError = (err) => {
   if (err === null) {
     return;
   }
@@ -56,7 +50,7 @@ const renderAppError = (err) => {
   error.textContent = err;
 };
 
-const renderFormError = (form, elements) => {
+const renderFormNotice = (form, elements) => {
   elements.input.focus();
   const error = document.querySelector('.text-danger');
   if (error) {
@@ -71,20 +65,19 @@ const renderFormError = (form, elements) => {
   } else {
     elements.input.classList.add('is-invalid');
     elements.feedback.classList.add('text-danger');
-    elements.feedback.textContent = form.field.url.error === 'loaded' ? i18next.t('error') : form.field.url.error;
+    elements.feedback.textContent = form.field.url.error;
   }
 };
 
 const initView = (state, elements) => {
   const mapping = {
     'form.status': () => renderForm(state.form, elements),
-    'form.field.url': () => renderFormError(state.form, elements),
+    'form.field.url': () => renderFormNotice(state.form, elements),
+    'form.error': () => renderFormError(state.form.error, elements),
     posts: () => renderFeed(state.posts, elements),
-    error: () => renderAppError(state.error, elements),
   };
 
-  const watchedState = onChange(state, (path, value) => {
-    console.log(path, value);
+  const watchedState = onChange(state, (path) => {
     if (mapping[path]) {
       mapping[path]();
     }

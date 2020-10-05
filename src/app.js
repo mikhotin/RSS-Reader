@@ -4,64 +4,41 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import * as yup from 'yup';
 import _ from 'lodash';
 import axios from 'axios';
+import i18next from 'i18next';
 import initView from './view';
 import parse from './parser';
+import { ru, en } from './locales';
 
-let timerUpdateFeeds;
-const validate = (field) => {
-  const schema = yup
-    .string()
-    .url()
-    .required();
-
-  try {
-    schema.validateSync(field, { abortEarly: false });
-    return null;
-  } catch (error) {
-    return error.message;
-  }
-};
 const getLastDatePost = (posts) => {
-  const pubDateColl = posts.map(({ pubDate }) => pubDate).sort();
-  return pubDateColl[pubDateColl.length - 1];
-};
-const updateFeeds = (feeds) => {
-  const checkFeed = () => {
-    feeds.forEach(({ url, lastPost }) => {
-      axios.get(url)
-        .then(({ data }) => {
-          const { posts } = parse(data);
-          const newLastPost = getLastDatePost(posts);
-          return newLastPost < lastPost;
-        });
-    });
-    updateFeeds(feeds);
-  };
-  timerUpdateFeeds = setTimeout(checkFeed, 5000);
-};
-const isFeedLoaded = (url, feeds) => {
-  if (feeds.length === 0) {
-    return false;
-  }
-  const collFeeds = feeds.map((feed) => feed.url);
-  return collFeeds.includes(url);
+  const dateColl = posts.map(({ pubDate }) => pubDate).sort();
+  return dateColl[dateColl.length - 1];
 };
 
 const app = () => {
+  i18next.init({
+    lng: 'en',
+    resources: {
+      ru,
+      en,
+    },
+  }).then(() => {
+    document.querySelector('.example').textContent = i18next.t('example');
+    document.querySelector('button').textContent = i18next.t('btnText');
+    document.querySelector('.lead').textContent = i18next.t('text');
+  });
   const state = {
     form: {
       status: 'initial',
       field: {
         url: {
-          value: '',
           valid: true,
           error: null,
         },
       },
+      error: null,
     },
     feeds: [],
     posts: [],
-    error: null,
   };
   const elements = {
     container: document.querySelector('main'),
@@ -71,12 +48,40 @@ const app = () => {
     form: document.querySelector('form'),
   };
   const watched = initView(state, elements);
+  const validate = (field, links) => {
+    const schema = yup.string()
+      .url(i18next.t('errors.notValidUrl'))
+      .required(i18next.t('errors.requiredField'))
+      .notOneOf(links, i18next.t('errors.alreadyLoaded'));
+
+    try {
+      schema.validateSync(field, { abortEarly: false });
+      return null;
+    } catch (error) {
+      return error.message;
+    }
+  };
+  const hasNewPost = ({ url, id }) => {
+    axios.get(url).then(({ data }) => {
+      const { posts } = parse(data);
+      const newLastPost = getLastDatePost(posts);
+      const [{ lastPost }] = state.posts.filter((item) => item.id === id);
+      return newLastPost < lastPost;
+    });
+  };
+
+  let timerUpdateFeeds;
+  const updateFeeds = (feeds) => {
+    const checkFeed = () => Promise.all(feeds.map(hasNewPost)).then(() => updateFeeds(feeds));
+    timerUpdateFeeds = setTimeout(checkFeed, 5000);
+  };
 
   elements.form.addEventListener('submit', (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const value = formData.get('url');
-    const error = validate(value);
+    const links = state.feeds.map(({ link }) => link);
+    const error = validate(value, links);
 
     if (error) {
       watched.form.field.url = {
@@ -89,28 +94,21 @@ const app = () => {
     try {
       const [, link] = value.split('//');
       const url = `https://cors-anywhere.herokuapp.com/${link}`;
-      const loadedFeed = isFeedLoaded(url, watched.feeds);
-      if (loadedFeed) {
-        watched.form.field.url = {
-          valid: false,
-          error: 'loaded',
-        };
-        return;
-      }
       watched.form.field.url = {
         valid: true,
         error: null,
       };
-      watched.error = null;
+      watched.form.error = null;
       watched.form.status = 'loading';
-      watched.form.field.url.value = url;
 
       axios.get(url).then(({ data }) => {
         const { feedTitle, posts } = parse(data);
         const lastPost = getLastDatePost(posts);
         const rssFeedId = _.uniqueId();
-        watched.feeds.push({ url, id: rssFeedId, lastPost });
-        watched.posts.push({ feedTitle, posts, id: rssFeedId });
+        watched.feeds.push({ url, link: value, id: rssFeedId });
+        watched.posts.push({
+          feedTitle, posts, id: rssFeedId, lastPost,
+        });
 
         clearTimeout(timerUpdateFeeds);
         updateFeeds(watched.feeds);
@@ -118,7 +116,7 @@ const app = () => {
       watched.form.status = 'success';
     } catch (err) {
       watched.form.status = 'failed';
-      watched.error = err.message;
+      watched.form.error = err.message;
     }
   });
 };
