@@ -39,6 +39,7 @@ const app = () => {
     },
     feeds: [],
     posts: [],
+    timerUpdateFeeds: null,
   };
   const elements = {
     container: document.querySelector('main'),
@@ -70,10 +71,9 @@ const app = () => {
     });
   };
 
-  let timerUpdateFeeds;
   const updateFeeds = (feeds) => {
     const checkFeed = () => Promise.all(feeds.map(hasNewPost)).then(() => updateFeeds(feeds));
-    timerUpdateFeeds = setTimeout(checkFeed, 5000);
+    state.timerUpdateFeeds = setTimeout(checkFeed, 5000);
   };
 
   elements.form.addEventListener('submit', (event) => {
@@ -110,7 +110,7 @@ const app = () => {
           feedTitle, posts, id: rssFeedId, lastPost,
         });
 
-        clearTimeout(timerUpdateFeeds);
+        clearTimeout(state.timerUpdateFeeds);
         updateFeeds(watched.feeds);
       });
       watched.form.status = 'success';
